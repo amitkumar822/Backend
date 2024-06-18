@@ -37,4 +37,30 @@ const registration = async (req, res) => {
   }
 };
 
-module.exports = { home, registration };
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const userExist = await User.findOne({ email });
+
+    if (!userExist) {
+      return res.json({ message: "Invalid credentails" });
+    }
+
+    const isValidation = await bcrypt.compare(password, userExist.password);
+
+    if (isValidation) {
+      res.json({
+        message: "Login successful",
+        token: userExist.generateToken(),
+        userId: userExist._id.toString(),
+      });
+    } else {
+      res.json({ message: "email or password wrong" });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+module.exports = { home, registration, login };

@@ -49,7 +49,10 @@ const login = async (req, res) => {
     const user = await userExist.compairePassword(password)
 
     if(user) {
-      res.json({message: "Login successful"})
+      res.json({message: "Login successful",
+        token: await userExist.generateToken(),
+        userId: userExist._id.toString(),
+      })
     }else{
       res.status(400).json({ message: "email or password wrong" });
     }
