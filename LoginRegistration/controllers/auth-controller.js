@@ -9,7 +9,7 @@ const home = async (req, res) => {
   }
 };
 
-const registration = async (req, res) => {
+const registration = async (req, res, next) => {
   try {
     const { username, password, email, phone } = req.body;
 
@@ -34,6 +34,7 @@ const registration = async (req, res) => {
     });
   } catch (error) {
     console.log("Error: ", error);
+    next(error);
   }
 };
 
