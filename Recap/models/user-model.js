@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken')
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -29,51 +29,47 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// password hasing ueing bcrypt
-
-userSchema.pre("save", async function(next) {
-  const user = this;
-
-  if(!user.isModified("password")) {
-    next();
-  }
-
+// password hash
+userSchema.pre("save", async function (next) {
   try {
-    const saltRound = await bcrypt.genSalt(10)
-    const hash_password = await bcrypt.hash(user.password, saltRound)
+    const user = this;
+    if (!user.isModified("password")) {
+      next();
+    }
+
+    const saltRound = await bcrypt.genSalt(10);
+    const hash_password = await bcrypt.hash(user.password, saltRound);
+
     user.password = hash_password;
   } catch (error) {
-    console.log("Error: ", error)
+    next(error);
   }
-})
+});
 
-// token generate using JWT
+// password compaire
+userSchema.methods.compairePassword = async function(password) {
+  return bcrypt.compare(password, this.password)
+}
 
-userSchema.methods.generateToken = function () {
+// token generation
+userSchema.methods.generateToken = async function() {
   try {
-    // payload
     return jwt.sign(
       {
         userId: this._id.toString(),
         email: this.email,
         isAdmin: this.isAdmin,
       },
-      //veriy signature
       process.env.JWT_SECRET_KEY,
       {
         expiresIn: "10d",
       }
-    );
+    )
   } catch (error) {
-    console.error(error);
+    
   }
-};
-
-// password compaire using bcrypt
-userSchema.methods.compairePassword = function(password) {
-  return bcrypt.compare(password, this.password)
 }
 
-const User = new mongoose.model("User", userSchema);
+const User = mongoose.model("User", userSchema);
 
 module.exports = User;

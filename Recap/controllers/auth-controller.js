@@ -1,65 +1,52 @@
 const User = require("../models/user-model");
 const bcrypt = require("bcrypt");
 
-const home = async (req, res) => {
+const registration = async (req, res, next) => {
   try {
-    res.send("Welcome to the home page!");
-  } catch (error) {
-    console.log("Error: ", error);
-  }
-};
-
-const registration = async (req, res) => {
-  try {
-    // console.log(req.body)
-    const { username, password, email, phone } = req.body;
+    const { username, password, phone, email } = req.body;
 
     const userExist = await User.findOne({ email });
 
     if (userExist) {
-      return res.json({ message: "Email alredy existe" });
+      return res.json({ message: "email is already defined" });
     }
-
-    // const hashedPassword = await bcrypt.hash(password, 10);
-    const userCreated = await User.create({
-      username,
-      password,
-      email,
-      phone,
-    });
+    // const hash_password = await bcrypt.hash(password, 10)
+    const userCreated = await User.create({ username, password, phone, email });
 
     res.json({
-      Message: userCreated,
-      token: userCreated.generateToken(),
+      message: "Register successful",
+      token: await userCreated.generateToken(),
+      userId: userCreated._id.toString(),
     });
   } catch (error) {
-    console.log("Error: ", error);
+    // console.error(error);
+    next(error);
   }
 };
 
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    
-    const userExist = await User.findOne({ email });
-    if(!userExist) {
-      return res.status(400).json({ message: "nvatid Credentials" });
-    }
-    
-    const user = await userExist.compairePassword(password)
 
-    if(user) {
-      res.json({message: "Login successful",
+    const userExist = await User.findOne({ email });
+
+    if (!userExist) {
+      return res.json({ messsage: "email is not defined" });
+    }
+    const isValidUser = await userExist.compairePassword(password)
+
+    if (isValidUser) {
+      res.json({
+        message: "Login successful",
         token: await userExist.generateToken(),
         userId: userExist._id.toString(),
-      })
-    }else{
-      res.status(400).json({ message: "email or password wrong" });
+      });
+    } else {
+      res.json({ message: "email or password wrong" });
     }
-
   } catch (error) {
-    console.log("Error Login: " + error)
+    console.error(error);
   }
-}
+};
 
-module.exports = { home, registration, login };
+module.exports = { registration, login };

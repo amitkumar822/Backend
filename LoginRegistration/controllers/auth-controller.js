@@ -28,7 +28,7 @@ const registration = async (req, res) => {
     });
 
     res.json({
-      Message: userCreated,
+      Message: "Registration successfully completed",
       token: userCreated.generateToken(),
       userId: userCreated._id.toString(),
     });
@@ -47,9 +47,9 @@ const login = async (req, res) => {
       return res.json({ message: "Invalid credentails" });
     }
 
-    const isValidation = await bcrypt.compare(password, userExist.password);
+    const isValidUser = await userExist.compairPassword(password);
 
-    if (isValidation) {
+    if (isValidUser) {
       res.json({
         message: "Login successful",
         token: userExist.generateToken(),
